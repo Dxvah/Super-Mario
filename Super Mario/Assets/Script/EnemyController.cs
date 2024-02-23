@@ -5,21 +5,25 @@ using UnityEngine;
 public class EnemyController : MonoBehaviour
 {
     public float speed = 2f; 
-    private int direction = -1; 
-
+    public bool vaIzquierda;
+    public float direction = -1;
     void Update()
     {
         
         transform.Translate(new Vector2(direction * speed * Time.deltaTime, 0));
     }
 
-    void OnCollisionEnter2D(Collision2D collision)
+    void OnCollisionEnter ( Collision collision)
     {
-        
+
         if (collision.gameObject.CompareTag("Obstaculo"))
         {
-            
-            direction *= -1;
+            direction = 1;
+            vaIzquierda = false;
+
         }
+        
+
     }
 }
+

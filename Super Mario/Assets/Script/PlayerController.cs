@@ -7,6 +7,7 @@ public class PlayerController : MonoBehaviour
     public float speed = 5f;
     public float jumpForce = 10f;
     public AudioClip jumpSound;
+    public AudioClip takeSound;
     public GameObject crushedEnemyPrefab;
     private Rigidbody2D rb;
     private bool isGrounded;
@@ -15,6 +16,7 @@ public class PlayerController : MonoBehaviour
     public AnimatorOverrideController marioGrande;
     private RuntimeAnimatorController marioChiquito;
     private bool marioesGrande = false;
+    private bool isDead = false;
 
     void Start()
     {
@@ -22,7 +24,7 @@ public class PlayerController : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         aPlayer = GetComponent<Animator>();
         marioChiquito = aPlayer.runtimeAnimatorController;
-        marioesGrande = false;
+        
     }
 
     void Update()
@@ -32,6 +34,7 @@ public class PlayerController : MonoBehaviour
         aPlayer.SetFloat("Velocidad X", Mathf.Abs(rb.velocity.x));
         aPlayer.SetFloat("Velocidad Y", rb.velocity.y);
         aPlayer.SetBool("isGrounded", isGrounded);
+       
 
         if (Input.GetButtonDown("Jump") && isGrounded)
         {
@@ -65,11 +68,14 @@ public class PlayerController : MonoBehaviour
                 Destroy(collision.gameObject);
                 Destroy(crushedEnemy, 1f);
             }
-
-
             if (marioesGrande)
             {
                 aPlayer.runtimeAnimatorController = marioChiquito;
+            }
+            else
+            {
+                aPlayer.SetBool("isDead",isDead);
+                transform.localPosition = new Vector3(0, 3, 1);
             }
         }
 
@@ -82,6 +88,7 @@ public class PlayerController : MonoBehaviour
         {
             if (marioGrande != null)
             {
+                audioSource.PlayOneShot(takeSound);
                 aPlayer.runtimeAnimatorController = marioGrande as RuntimeAnimatorController;
                 Destroy(collision.gameObject);
                 marioesGrande = true;
