@@ -6,38 +6,86 @@ public class PlayerController : MonoBehaviour
 {
     public float speed = 5f;
     public float jumpForce = 10f;
-    private Rigidbody2D rb;
-    private AudioSource audioSource;
     public AudioClip jumpSound;
+    public GameObject crushedEnemyPrefab;
+    private Rigidbody2D rb;
+    private bool isGrounded;
+    private AudioSource audioSource;
+    private Animator aPlayer;
+    public AnimatorOverrideController marioGrande;
+    private RuntimeAnimatorController marioChiquito;
+    private bool marioesGrande = false;
 
     void Start()
     {
-        rb = GetComponent<Rigidbody2D>();
         audioSource = GetComponent<AudioSource>();
+        rb = GetComponent<Rigidbody2D>();
+        aPlayer = GetComponent<Animator>();
+        marioChiquito = aPlayer.runtimeAnimatorController;
+        marioesGrande = false;
     }
 
     void Update()
     {
         float horizontalInput = Input.GetAxis("Horizontal");
-        Vector2 movement = new Vector2(horizontalInput, 0);
-        rb.velocity = new Vector2(movement.x * speed, rb.velocity.y);
+        rb.velocity = new Vector2(horizontalInput * speed, rb.velocity.y);
+        aPlayer.SetFloat("Velocidad X", Mathf.Abs(rb.velocity.x));
+        aPlayer.SetFloat("Velocidad Y", rb.velocity.y);
+        aPlayer.SetBool("isGrounded", isGrounded);
 
-        if (Input.GetButtonDown("Jump") && IsGrounded())
+        if (Input.GetButtonDown("Jump") && isGrounded)
         {
-            Jump();
+            rb.velocity = new Vector2(rb.velocity.x, jumpForce);
+
+            if (jumpSound != null)
+                audioSource.PlayOneShot(jumpSound);
+
+            isGrounded = false;
         }
+
+        if (horizontalInput < 0)
+            transform.localScale = new Vector3(-5, 5, 1);
+        else if (horizontalInput > 0)
+            transform.localScale = new Vector3(5, 5, 1);
     }
 
-    void Jump()
+    void OnCollisionEnter2D(Collision2D collision)
     {
-        rb.velocity = new Vector2(rb.velocity.x, jumpForce);
-        audioSource.PlayOneShot(jumpSound);
-    }
+        if (collision.gameObject.CompareTag("Ground"))
+        {
+            isGrounded = true;
+        }
 
-    bool IsGrounded()
-    {
+        if (collision.gameObject.CompareTag("Enemy"))
+        {
+            ContactPoint2D contact = collision.contacts[0];
+            if (contact.normal.y > 0.9f)
+            {
+                GameObject crushedEnemy = Instantiate(crushedEnemyPrefab, collision.transform.position, Quaternion.identity);
+                Destroy(collision.gameObject);
+                Destroy(crushedEnemy, 1f);
+            }
 
-        RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down, 0.1f);
-        return hit.collider != null;
+
+            if (marioesGrande)
+            {
+                aPlayer.runtimeAnimatorController = marioChiquito;
+            }
+        }
+
+        if (collision.gameObject.CompareTag("Obstaculo"))
+        {
+            isGrounded = true;
+        }
+
+        if (collision.gameObject.CompareTag("Seta"))
+        {
+            if (marioGrande != null)
+            {
+                aPlayer.runtimeAnimatorController = marioGrande as RuntimeAnimatorController;
+                Destroy(collision.gameObject);
+                marioesGrande = true;
+            }
+        }
     }
 }

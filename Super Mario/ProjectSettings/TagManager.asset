@@ -3,12 +3,16 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-  tags: []
+  tags:
+  - Enemy
+  - Ground
+  - Obstaculo
+  - Seta
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - GroundLayer
   - Water
   - UI
   - 
